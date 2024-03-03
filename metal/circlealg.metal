@@ -1,8 +1,8 @@
 #include <metal_stdlib>
 using namespace metal;
-kernel void minsky(device int32_t* xv, device int32_t* yv,
-                   device int64_t* cnt,
-                   uint index [[thread_position_in_grid]]) {
+kernel void circlealg(device int32_t* xv, device int32_t* yv,
+                      device int64_t* cnt,
+                      uint index [[thread_position_in_grid]]) {
     int32_t x = xv[index] ;
     int32_t y = yv[index] ;
     int32_t smcnt = 0 ;

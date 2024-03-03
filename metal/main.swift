@@ -2,6 +2,6 @@ import Foundation
 import Metal
 
 let device = MTLCreateSystemDefaultDevice()!
-let minsky: Minsky = Minsky(device)!
-minsky.prepareData()
-minsky.sendComputeCommand()
+let circleAlg: CircleAlg = CircleAlg(device)!
+circleAlg.prepareData()
+circleAlg.sendComputeCommand()

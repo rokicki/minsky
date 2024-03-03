@@ -1,11 +1,11 @@
 import Foundation
 import Metal
 
-class Minsky {
+class CircleAlg {
     static let len = 1 << 19
-    static let bufferlen = Minsky.len * MemoryLayout<Int32>.stride
+    static let bufferlen = CircleAlg.len * MemoryLayout<Int32>.stride
     let device: MTLDevice
-    let minskyKernelPSO: MTLComputePipelineState
+    let circleAlgKernelPSO: MTLComputePipelineState
     let commandQueue: MTLCommandQueue
     var x: MTLBuffer?
     var y: MTLBuffer?
@@ -19,13 +19,13 @@ class Minsky {
             NSLog("Could not find library.")
             return nil
         }
-        let minskyKernel = defaultLibrary!.makeFunction(name: "minsky")
-        if (minskyKernel == nil) {
+        let circleAlgKernel = defaultLibrary!.makeFunction(name: "circleAlg")
+        if (circleAlgKernel == nil) {
             NSLog("Could not find function.")
             return nil
         }
         do {
-            try self.minskyKernelPSO = self.device.makeComputePipelineState(function: minskyKernel!)
+            try self.circleAlgKernelPSO = self.device.makeComputePipelineState(function: circleAlgKernel!)
         } catch {
             NSLog("Could not create pipeline")
             return nil
@@ -33,16 +33,16 @@ class Minsky {
         self.commandQueue = self.device.makeCommandQueue()!
     }
     func prepareData() {
-        self.x = self.device.makeBuffer(length: Minsky.bufferlen, options: MTLResourceOptions.storageModeShared)!
-        self.y = self.device.makeBuffer(length: Minsky.bufferlen, options: MTLResourceOptions.storageModeShared)!
-        self.cnt = self.device.makeBuffer(length: 2*Minsky.bufferlen, options: MTLResourceOptions.storageModeShared)!
+        self.x = self.device.makeBuffer(length: CircleAlg.bufferlen, options: MTLResourceOptions.storageModeShared)!
+        self.y = self.device.makeBuffer(length: CircleAlg.bufferlen, options: MTLResourceOptions.storageModeShared)!
+        self.cnt = self.device.makeBuffer(length: 2*CircleAlg.bufferlen, options: MTLResourceOptions.storageModeShared)!
         self.generateInitialData(self.x!, self.y!, self.cnt!)
     }
     func generateInitialData(_ x: MTLBuffer, _ y: MTLBuffer, _ z: MTLBuffer) {
         let xPtr: UnsafeMutablePointer<Int32> = x.contents().assumingMemoryBound(to: Int32.self)
         let yPtr: UnsafeMutablePointer<Int32> = y.contents().assumingMemoryBound(to: Int32.self)
         let cntPtr: UnsafeMutablePointer<Int64> = z.contents().assumingMemoryBound(to: Int64.self)
-        for index in 0 ..< Minsky.len {
+        for index in 0 ..< CircleAlg.len {
             xPtr[index] = Int32(self.nextval)
             yPtr[index] = Int32(((self.nextval)*15)>>1)
             cntPtr[index] = 1
@@ -65,14 +65,14 @@ class Minsky {
        }
     }
     func encodeAddCommand(_ computeEncoder: MTLComputeCommandEncoder) {
-        computeEncoder.setComputePipelineState(self.minskyKernelPSO)
+        computeEncoder.setComputePipelineState(self.circleAlgKernelPSO)
         computeEncoder.setBuffer(self.x, offset: 0, index: 0)
         computeEncoder.setBuffer(self.y, offset: 0, index: 1)
         computeEncoder.setBuffer(self.cnt, offset: 0, index: 2)
-        let gridSize: MTLSize = MTLSizeMake(Minsky.len, 1, 1)
-        var threadGroupSizeInt: Int = self.minskyKernelPSO.maxTotalThreadsPerThreadgroup
-        if (threadGroupSizeInt > Minsky.len) {
-            threadGroupSizeInt = Minsky.len
+        let gridSize: MTLSize = MTLSizeMake(CircleAlg.len, 1, 1)
+        var threadGroupSizeInt: Int = self.circleAlgKernelPSO.maxTotalThreadsPerThreadgroup
+        if (threadGroupSizeInt > CircleAlg.len) {
+            threadGroupSizeInt = CircleAlg.len
         }
         let threadGroupSize: MTLSize = MTLSizeMake(threadGroupSizeInt, 1, 1)
         computeEncoder.dispatchThreads(gridSize, threadsPerThreadgroup: threadGroupSize)
@@ -81,7 +81,7 @@ class Minsky {
         let x: UnsafeMutablePointer<Int32> = self.x!.contents().assumingMemoryBound(to: Int32.self)
         let y: UnsafeMutablePointer<Int32> = self.y!.contents().assumingMemoryBound(to: Int32.self)
         let cnt: UnsafeMutablePointer<Int64> = self.cnt!.contents().assumingMemoryBound(to: Int64.self)
-        for index in 0 ..< Minsky.len {
+        for index in 0 ..< CircleAlg.len {
             if (y[index] == 0) {
                print(self.ival[index], cnt[index], x[index])
                x[index] = Int32(self.nextval)
